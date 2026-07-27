@@ -1,0 +1,78 @@
+site_name: 세준의 작업실
+site_description: 만든 것들을 모아두는 곳
+site_url: https://sejunch.github.io/
+repo_url: https://github.com/sejunch
+repo_name: sejunch
+copyright: © 2026 세준
+
+theme:
+  name: material
+  language: ko
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: 어두운 화면으로
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: 밝은 화면으로
+
+plugins:
+  - search:
+      # 한글은 띄어쓰기 단위가 커서 기본 설정으론 검색이 잘 안 걸린다.
+      # 조사까지 끊어주도록 구분자를 넓혔다.
+      separator: '[\s​\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;'
+  - blog:
+      blog_dir: 글
+      post_date_format: long
+      archive: false
+      post_url_format: "{slug}"
+      categories_allowed:
+        - 언어 만들기
+        - 기록
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - tables
+
+nav:
+  - 홈: index.md
+  - 만든 것:
+      - 한랭 — 한글 프로그래밍 언어: projects/hanlang.md
+  - 글: 글/index.md
+  - 소개: about.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sejunch
+      name: GitHub
