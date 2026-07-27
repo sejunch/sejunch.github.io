@@ -1,9 +1,9 @@
-site_name: 세준의 작업실
-site_description: 만든 것들을 모아두는 곳
+site_name: 세준위키
+site_description: 세준이 만든 것들을 정리해 두는 위키
 site_url: https://sejunch.github.io/
 repo_url: https://github.com/sejunch
 repo_name: sejunch
-copyright: © 2026 세준
+copyright: © 2026 세준 · 내용은 자유롭게 가져가도 됩니다
 
 theme:
   name: material
@@ -13,63 +13,61 @@ theme:
   features:
     - navigation.instant
     - navigation.tracking
-    - navigation.sections
     - navigation.top
     - navigation.footer
+    - navigation.indexes
+    - toc.follow
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
-    - content.code.annotate
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: teal
+      accent: teal
       toggle:
         icon: material/weather-night
         name: 어두운 화면으로
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: teal
+      accent: teal
       toggle:
         icon: material/weather-sunny
         name: 밝은 화면으로
 
 plugins:
   - search:
-      # 한글은 띄어쓰기 단위가 커서 기본 설정으론 검색이 잘 안 걸린다.
-      # 조사까지 끊어주도록 구분자를 넓혔다.
+      # 한글은 조사가 붙어 다녀서 기본 구분자로는 검색이 잘 안 걸린다.
       separator: '[\s​\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;'
-  - blog:
-      blog_dir: 글
-      post_date_format: long
-      archive: false
-      post_url_format: "{slug}"
-      categories_allowed:
-        - 언어 만들기
-        - 기록
+  - tags
 
 markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
+  - footnotes            # 나무위키식 각주
+  - def_list
+  - tables
   - toc:
-      permalink: true
+      permalink: "¶"
+      toc_depth: 4
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
   - pymdownx.details
-  - tables
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
 
 nav:
-  - 홈: index.md
-  - 만든 것:
-      - 한랭 — 한글 프로그래밍 언어: projects/hanlang.md
-  - 글: 글/index.md
-  - 소개: about.md
+  - 대문: index.md
+  - 문서:
+      - 세준: 세준.md
+      - 한랭: 한랭.md
+      - 한글 프로그래밍 언어: 한글-프로그래밍-언어.md
+  - 분류: 분류.md
 
 extra:
   social:
