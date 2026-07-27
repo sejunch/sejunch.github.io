@@ -53,6 +53,11 @@ markdown_extensions:
   - toc:
       permalink: "¶"
       toc_depth: 4
+      # 기본 슬러그는 한글을 통째로 버려서 앵커가 '#4' 처럼 번호만 남는다.
+      # 번호가 밀리면 링크가 깨지므로 유니코드를 살리는 슬러그를 쓴다.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
