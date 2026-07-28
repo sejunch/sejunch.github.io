@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# 세준위키 도구
+#   ./wiki 보기          미리보기 서버 (고치면 브라우저가 알아서 새로고침)
+#   ./wiki 새글 이름      새 문서 만들고 메뉴에 등록
+#   ./wiki 올리기        고친 것 전부 커밋하고 push
+#   ./wiki 확인          링크가 깨졌는지 검사
+set -e
+cd "$(dirname "$0")"
+
+VENV=.venv/bin
+[ -x "$VENV/mkdocs" ] || {
+    echo "처음이니 준비부터 할게…"
+    python3 -m venv .venv
+    "$VENV/pip" install -q -r requirements.txt
+}
+
+cmd="${1:-}"
+
+case "$cmd" in
+  보기|serve|s)
+    echo "http://127.0.0.1:8000  — 끄려면 Ctrl+C"
+    exec "$VENV/mkdocs" serve
+    ;;
+
+  새글|new|n)
+    name="${2:-}"
+    [ -n "$name" ] || { echo "사용법: ./wiki 새글 문서이름"; exit 1; }
+    file="docs/${name}.md"
+    [ -e "$file" ] && { echo "'$file' 이미 있음"; exit 1; }
+    cat > "$file" <<EOF
+---
+tags:
+  - 만든 것
+---
+
+# ${name}
+
+!!! abstract "개요"
+    한 문단으로 요약. 이 문서가 뭘 다루는지.
+
+## 1. 개요
+
+## 2. 특징
+
+## 3. 지금 상태
+
+| | |
+|---|---|
+| 상태 | 만드는 중 |
+
+## 4. 관련 문서
+
+- [세준](세준.md)
+EOF
+    # nav 의 '한글 프로그래밍 언어' 줄 앞에 끼워 넣는다
+    python3 - "$name" <<'PY'
+import io, sys
+name = sys.argv[1]
+p = "mkdocs.yml"
+s = io.open(p, encoding="utf-8").read()
+line = f"      - {name}: {name}.md\n"
+anchor = "      - 한글 프로그래밍 언어: 한글-프로그래밍-언어.md\n"
+if line in s:
+    pass
+elif anchor in s:
+    s = s.replace(anchor, line + anchor, 1)
+else:
+    s = s.replace("  - 분류: 분류.md\n", line + "  - 분류: 분류.md\n", 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PY
+    echo "만들었음: $file"
+    echo "메뉴에도 넣었음. 이제 열어서 쓰면 됨:"
+    echo "  \$EDITOR $file"
+    ;;
+
+  올리기|push|p)
+    if [ -z "$(git status --porcelain)" ]; then
+        echo "고친 게 없음"
+        exit 0
+    fi
+    echo "── 바뀐 것 ──"
+    git status --short
+    echo
+    msg="${2:-}"
+    if [ -z "$msg" ]; then
+        read -r -p "한 줄 설명 (그냥 엔터: '위키 갱신'): " msg
+        [ -n "$msg" ] || msg="위키 갱신"
+    fi
+    if ! out=$("$VENV/mkdocs" build --strict 2>&1); then
+        echo "빌드 실패:"; echo "$out" | grep -E "WARNING|ERROR|Aborted"; exit 1
+    fi
+    git add -A
+    git commit -q -m "$msg"
+    git push -q origin main
+    echo "올렸음. 1~2분 뒤 https://sejunch.github.io 에 반영됨"
+    echo "진행 상황: https://github.com/sejunch/sejunch.github.io/actions"
+    ;;
+
+  확인|check|c)
+    if ! out=$("$VENV/mkdocs" build --strict 2>&1); then
+        echo "빌드 실패:"; echo "$out" | grep -E "WARNING|ERROR|Aborted"; exit 1
+    fi
+    python3 - <<'PY'
+import os, re, urllib.parse
+root = "site"; bad = []; ids = {}
+for d, _, fs in os.walk(root):
+    for f in fs:
+        if f.endswith(".html"):
+            p = os.path.relpath(os.path.join(d, f), root).replace("\\", "/")
+            ids[p] = set(re.findall(r'\sid="([^"]+)"', open(os.path.join(root, p), encoding="utf-8").read()))
+for p in ids:
+    if p == "404.html":
+        continue
+    for href in re.findall(r'href="([^"]+)"', open(os.path.join(root, p), encoding="utf-8").read()):
+        if href.startswith(("http", "mailto:", "//", "/", "javascript:")):
+            continue
+        path, _, frag = href.partition("#")
+        frag = urllib.parse.unquote(frag)
+        if not path:
+            tgt = p
+        else:
+            raw = os.path.normpath(os.path.join(os.path.dirname(p), urllib.parse.unquote(path))).replace("\\", "/")
+            if os.path.isdir(os.path.join(root, raw)):
+                tgt = (raw + "/index.html").lstrip("./")
+            elif os.path.isfile(os.path.join(root, raw)):
+                tgt = raw
+            else:
+                bad.append((p, href, "그런 문서 없음")); continue
+        if tgt.endswith(".html"):
+            if tgt not in ids:
+                bad.append((p, href, "그런 문서 없음"))
+            elif frag and frag not in ids[tgt]:
+                bad.append((p, href, "그런 항목 없음"))
+if bad:
+    print(f"깨진 링크 {len(bad)}개:")
+    for b in bad:
+        print(f"  {b[0]}  →  {b[1]}   ({b[2]})")
+else:
+    print("깨진 링크 없음")
+PY
+    ;;
+
+  *)
+    cat <<'EOF'
+세준위키 도구
+
+  ./wiki 보기           미리보기 (http://127.0.0.1:8000)
+  ./wiki 새글 문서이름    새 문서 만들고 메뉴에 등록
+  ./wiki 올리기          커밋하고 push
+  ./wiki 확인            링크 깨진 곳 찾기
+
+브라우저에서 바로 고치려면 문서 오른쪽 위 연필 버튼을 누르면 된다.
+EOF
+    ;;
+esac

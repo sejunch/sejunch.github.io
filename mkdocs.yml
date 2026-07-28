@@ -1,8 +1,9 @@
 site_name: 세준위키
 site_description: 세준이 만든 것들을 정리해 두는 위키
 site_url: https://sejunch.github.io/
-repo_url: https://github.com/sejunch
-repo_name: sejunch
+repo_url: https://github.com/sejunch/sejunch.github.io
+repo_name: 위키 고치기
+edit_uri: edit/main/docs/
 copyright: © 2026 세준 · 내용은 자유롭게 가져가도 됩니다
 
 theme:
@@ -21,6 +22,7 @@ theme:
     - search.highlight
     - search.share
     - content.code.copy
+    - content.action.edit      # 문서마다 '고치기' 연필 버튼
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
